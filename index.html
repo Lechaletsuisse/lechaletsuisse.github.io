@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chalet Suisse — La carte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ardoise:#1d2a26;
+  --ardoise-2:#24342f;
+  --craie:#f1ece2;
+  --craie-doux:#b9b5aa;
+  --or:#d9a441;
+  --bois:#6b4a31;
+  --display:"Young Serif", Georgia, "Times New Roman", serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--ardoise);color:var(--craie);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--or);outline-offset:3px;border-radius:4px}
+
+header.top{padding:40px 20px 28px;text-align:center;border-bottom:1px solid var(--bois);
+  background:repeating-linear-gradient(90deg,transparent 0 46px,rgba(107,74,49,.12) 46px 48px),var(--ardoise)}
+.logo{font-family:var(--display);font-size:clamp(2.2rem,9vw,3.4rem);letter-spacing:.06em;line-height:1;margin:0}
+.sous-titre{margin:10px 0 0;color:var(--or);font-size:.82rem;letter-spacing:.32em;text-transform:uppercase}
+.lieu{margin:14px 0 0;color:var(--craie-doux);font-size:.9rem}
+
+nav.cats{position:sticky;top:0;z-index:5;background:rgba(29,42,38,.96);backdrop-filter:blur(6px);border-bottom:1px solid rgba(107,74,49,.6)}
+nav.cats ul{list-style:none;margin:0 auto;padding:10px 16px;display:flex;gap:8px;overflow-x:auto;max-width:760px;scrollbar-width:none}
+nav.cats ul::-webkit-scrollbar{display:none}
+nav.cats a{display:block;white-space:nowrap;text-decoration:none;font-size:.88rem;font-weight:500;padding:7px 14px;border:1px solid rgba(241,236,226,.25);border-radius:999px;color:var(--craie)}
+nav.cats a:hover,nav.cats a.actif{background:var(--or);border-color:var(--or);color:var(--ardoise)}
+
+main{max-width:760px;margin:0 auto;padding:8px 20px 40px}
+section.cat{padding:34px 0 8px;scroll-margin-top:64px}
+section.cat h2{font-family:var(--display);font-weight:400;font-size:1.65rem;margin:0;text-wrap:balance;display:flex;align-items:center;gap:14px}
+section.cat h2::after{content:"";flex:1;height:1px;background:var(--bois)}
+.intro{margin:8px 0 0;color:var(--craie-doux);font-size:.92rem;font-style:italic}
+
+ul.plats{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:20px}
+.ligne{display:flex;align-items:baseline;gap:10px}
+.nom{font-weight:600;font-size:1.04rem}
+.points{flex:1;border-bottom:1px dotted rgba(241,236,226,.35);transform:translateY(-4px);min-width:16px}
+.prix{font-variant-numeric:tabular-nums;font-weight:600;color:var(--or);white-space:nowrap}
+.desc{margin:4px 0 0;color:var(--craie-doux);font-size:.93rem;max-width:58ch}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{font-size:.74rem;letter-spacing:.04em;padding:2px 9px;border-radius:999px;border:1px solid var(--bois);color:var(--craie)}
+.tag.or{border-color:var(--or);color:var(--or)}
+.prix.moment{color:var(--craie-doux);font-weight:500;font-style:italic}
+
+.extras{margin:22px 0 0;padding:14px 16px;background:var(--ardoise-2);border-left:3px solid var(--bois);border-radius:0 6px 6px 0;display:grid;gap:8px}
+.extras .nom{font-weight:500;font-size:.95rem}
+
+.encart{margin:22px 0 0;padding:16px;background:var(--ardoise-2);border-radius:8px;border:1px solid rgba(217,164,65,.35)}
+.encart p{margin:0}
+.encart .choix{margin-top:8px;display:grid;gap:2px;color:var(--craie-doux);font-size:.95rem}
+
+footer{max-width:760px;margin:0 auto;padding:24px 20px 48px;border-top:1px solid var(--bois);color:var(--craie-doux);font-size:.85rem;text-align:center}
+footer p{margin:4px 0}
+
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1 class="logo">CHALET SUISSE</h1>
+  <p class="sous-titre">Bar · Restaurant</p>
+  <p class="lieu">Cuisine de montagne &amp; saveurs du Vercors · Carte d'hiver</p>
+</header>
+
+<nav class="cats" aria-label="Rubriques de la carte">
+  <ul id="nav"></ul>
+</nav>
+
+<main id="carte"></main>
+
+<footer>
+  <p>Informations allergènes disponibles sur demande auprès de notre équipe.</p>
+  <p>Prix TTC, service compris.</p>
+</footer>
+
+<script>
+// ============================================================
+//  LA CARTE — c'est ici qu'on modifie les plats et les prix.
+//  p:"16,50" = prix affiché · p:"" = pas de prix · p:null = "Selon le moment"
+// ============================================================
+const MENU_ENFANT_PRIX = "10,50";
+
+const CARTE = [
+  { id:"entrees", titre:"Entrées", plats:[
+    {n:"Salade du Vercors", p:"16,50", d:"Salade, crudités, ravioles grillées, bleu de Sassenage.", t:["Du terroir"]},
+    {n:"Bo-bun", p:"17,00", d:"Nouilles de riz, carottes, concombre, pousses de soja, menthe et coriandre, cacahuètes, bœuf cinq épices et nems maison."},
+    {n:"Escargots au beurre persillé", p:"13,50", d:"La douzaine."},
+    {n:"Nems maison", p:"8,50", d:"4 pièces.", t:["Fait maison"]},
+    {n:"Assiette de charcuterie", p:"14,50", d:"Coppa, rosette, saucisson à l'ail fumé, jambon cru ibérique."}
+  ]},
+  { id:"enfants", titre:"Menu enfant", intro:"Pour les moins de 12 ans.", menuEnfant:true },
+  { id:"gratines", titre:"Plats gratinés", plats:[
+    {n:"Escalope savoyarde", p:"20,50", d:"Escalope de poulet et jambon cru gratinés au reblochon, accompagnée de salade verte."},
+    {n:"Tartiflette", p:"", t:["De saison"]},
+    {n:"Boîte chaude", p:"", t:["De saison"]},
+    {n:"Ravioles gratinées au bleu du Vercors", p:"17,50", d:"Accompagnées de salade verte.", t:["Du terroir"]},
+    {n:"Ravioles gratinées aux morilles", p:"18,50", d:"Accompagnées de salade verte."},
+    {n:"Gratin dauphinois maison", p:"15,50", d:"Accompagné de salade verte.", t:["Fait maison"]}
+  ], extras:[{n:"Supplément charcuterie", p:""}]},
+  { id:"viandes", titre:"Nos viandes", intro:"Servies avec frites et salade verte.", plats:[
+    {n:"Brochette de bœuf sur potence", p:"35,00", d:"Cœur de rumsteck charolais, 350 g, servi suspendu à table, avec sauce au choix.", t:["Spécialité"]},
+    {n:"La pièce du boucher", p:null, d:"Demandez la suggestion du moment."}
+  ], extras:[
+    {n:"Sauce supplémentaire (poivre, bleu ou morilles)", p:"3,00"},
+    {n:"Accompagnement gratin dauphinois", p:"3,50"}
+  ]},
+  { id:"burgers", titre:"Nos burgers", intro:"Tous servis avec frites et salade verte. Version végétarienne possible : le steak est remplacé par un rösti de pomme de terre.", plats:[
+    {n:"Le Classic", p:"16,90", d:"Steak haché charolais 150 g, crudités, cheddar, sauce burger.", t:["Végé possible"]},
+    {n:"Le Grenoblois", p:"17,50", d:"Steak haché charolais 150 g, crudités, noix, bacon grillé, sauce au bleu du Vercors.", t:["Végé possible"]},
+    {n:"Le Savoyard", p:"18,00", d:"Steak haché charolais, bacon grillé, sauce burger, reblochon.", t:["Végé possible"]},
+    {n:"Le Chicken", p:"16,90", d:"Tenders de poulet, crudités, cheddar, sauce burger."}
+  ], extras:[{n:"Version double (supplément steak)", p:"5,00"}]},
+  { id:"fromages", titre:"Spécialités fromagères", intro:"Nos classiques de l'hiver.", plats:[
+    {n:"Fondue savoyarde", p:"", d:"Accompagnée de salade verte.", t:["De saison"]},
+    {n:"Raclette", p:"", d:"Accompagnée de charcuterie.", t:["De saison"]}
+  ]}
+];
+
+// ---------- Affichage (pas besoin de toucher en dessous) ----------
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const tagHtml = t => !t ? "" : `<div class="tags">${t.map(x => `<span class="tag${x==="Spécialité"?" or":""}">${esc(x)}</span>`).join("")}</div>`;
+const ligne = (n,p) => `<div class="ligne"><span class="nom">${esc(n)}</span><span class="points" aria-hidden="true"></span>${
+  p === null ? `<span class="prix moment">Selon le moment</span>` : p ? `<span class="prix">${esc(p)} €</span>` : ""}</div>`;
+
+document.getElementById("nav").innerHTML = CARTE.map(c => `<li><a href="#${c.id}">${esc(c.titre)}</a></li>`).join("");
+
+document.getElementById("carte").innerHTML = CARTE.map(c => {
+  let h = `<section class="cat" id="${c.id}" aria-labelledby="t-${c.id}"><h2 id="t-${c.id}">${esc(c.titre)}</h2>`;
+  if (c.intro) h += `<p class="intro">${esc(c.intro)}</p>`;
+  if (c.menuEnfant) {
+    h += `<div class="encart">${ligne("Menu enfant", MENU_ENFANT_PRIX)}
+      <div class="choix"><span>Steak haché charolais, frites et une boule de glace</span><span>ou</span><span>Tenders de poulet, frites et une boule de glace</span></div></div>`;
+  }
+  if (c.plats) h += `<ul class="plats">${c.plats.map(x => `<li>${ligne(x.n,x.p)}${x.d?`<p class="desc">${esc(x.d)}</p>`:""}${tagHtml(x.t)}</li>`).join("")}</ul>`;
+  if (c.extras) h += `<div class="extras">${c.extras.map(x => ligne(x.n,x.p)).join("")}</div>`;
+  return h + `</section>`;
+}).join("");
+
+const liens = [...document.querySelectorAll("nav.cats a")];
+const obs = new IntersectionObserver(es => es.forEach(e => {
+  if (e.isIntersecting) {
+    liens.forEach(a => a.classList.toggle("actif", a.getAttribute("href") === "#" + e.target.id));
+    const a = liens.find(a => a.classList.contains("actif"));
+    if (a) a.scrollIntoView({block:"nearest", inline:"center"});
+  }
+}), {rootMargin:"-45% 0px -50% 0px"});
+document.querySelectorAll("section.cat").forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
